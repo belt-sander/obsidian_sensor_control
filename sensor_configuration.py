@@ -6,6 +6,110 @@ from PIL import Image, ImageTk
 import can
 import cantools
 
+
+entry_int_values = []
+
+
+def add_int_value_entry():
+    """
+    Unused right now. Will be used for "Expert Mode"
+    """
+    label = tk.Label(frame, text=f"User Input Parameter (byte {len(entry_int_values) + 3} (hex)):", width=30)
+    label.grid(row=len(entry_int_values) + 5, column=0)
+    entry = tk.Entry(frame)
+    entry.grid(row=len(entry_int_values) + 5, column=1)
+    entry.insert(0, "0")
+    entry_int_values.append(entry)
+
+
+def clear_int_value_entries():
+    for entry in entry_int_values:
+        entry.grid_forget()
+    entry_int_values.clear()
+
+
+def update_gui_options(*args):
+    selected_option = int_value2_var.get()
+
+    clear_int_value_entries()
+
+    if selected_option == "Adaptive Filtering (On / Off Toggle)":
+        int_value_3 = tk.Label(frame, text="User Enable / Disable (0 == Disable / 1 == Enable)):", width=60)
+        int_value_3.grid(row=5, column=0)
+        int_value_3 = tk.Entry(frame)
+        int_value_3.grid(row=5, column=1)
+        int_value_3.insert(0, "0")
+        entry_int_values.append(int_value_3)
+
+        """
+        Zero padding
+        """
+        int_value_4 = tk.Entry(frame)
+        int_value_4.insert(0, "0")
+        entry_int_values.append(int_value_4)
+
+        int_value_5 = tk.Entry(frame)
+        int_value_5.insert(0, "0")
+        entry_int_values.append(int_value_5)
+
+        int_value_6 = tk.Entry(frame)
+        int_value_6.insert(0, "0")
+        entry_int_values.append(int_value_6)
+
+        int_value_7 = tk.Entry(frame)
+        int_value_7.insert(0, "0")
+        entry_int_values.append(int_value_7)
+
+        """
+        Send button
+        """
+        button_send = tk.Button(frame, text="Send", command=send_can_message)
+        button_send.grid(row=20, columnspan=8, pady=10)
+
+    elif selected_option == "Accel / Gyro Filtering (On / Off Toggle + Filter Parameters)":
+        int_value_3 = tk.Label(frame, text="User Enable / Disable (0 == Disable / 1 == Enable)):", width=60)
+        int_value_3.grid(row=5, column=0)
+        int_value_3 = tk.Entry(frame)
+        int_value_3.grid(row=5, column=1)
+        int_value_3.insert(0, "0")
+        entry_int_values.append(int_value_3)
+
+        int_value_4 = tk.Label(frame, text="Accelerometer Filter Window Size (Number of samples (0-120)):", width=60)
+        int_value_4.grid(row=6, column=0)
+        int_value_4 = tk.Entry(frame)
+        int_value_4.grid(row=6, column=1)
+        int_value_4.insert(0, "0")
+        entry_int_values.append(int_value_4)
+
+        int_value_5 = tk.Label(frame, text="Gyroscope Filter Window Size (Number of samples (0-120)):", width=60)
+        int_value_5.grid(row=7, column=0)
+        int_value_5 = tk.Entry(frame)
+        int_value_5.grid(row=7, column=1)
+        int_value_5.insert(0, "0")
+        entry_int_values.append(int_value_5)
+
+        """
+        Zero padding
+        """
+        int_value_6 = tk.Entry(frame)
+        int_value_6.insert(0, "0")
+        entry_int_values.append(int_value_6)
+
+        int_value_7 = tk.Entry(frame)
+        int_value_7.insert(0, "0")
+        entry_int_values.append(int_value_7)
+
+        """
+        Send button
+        """
+        button_send = tk.Button(frame, text="Send", command=send_can_message)
+        button_send.grid(row=20, columnspan=8, pady=10)
+
+    elif selected_option == "Pro Mode":
+        for _ in range(4):
+            add_int_value_entry()
+
+
 def send_can_message():
     try:
         channel = entry_channel.get()
@@ -46,28 +150,17 @@ def send_can_message():
         messagebox.showerror("Error", str(e))
 
 
-
 # GUI
 root = tk.Tk()
 root.title("PCAN-USB Obsidian Group Sensor Config")
 frame = tk.Frame(root, padx=60, pady=60)
 frame.grid()
 
-# Load the image
 logo_image = Image.open("logo.png")
-
-# Resize the image (optional)
 logo_image = logo_image.resize((400, 400), Image.ANTIALIAS)
-
-# Create a PhotoImage object
 logo_photo = ImageTk.PhotoImage(logo_image)
-
-# Create a Label widget with the PhotoImage object
 logo_label = tk.Label(frame, image=logo_photo)
-
-# Add the Label widget to the GUI
 logo_label.grid(row=0, columnspan=2, pady=10)
-
 
 label_channel = tk.Label(frame, text="Channel (interface):")
 label_channel.grid(row=1, column=0)
@@ -88,6 +181,7 @@ entry_can_id.grid(row=3, column=1)
 entry_can_id.insert(0, "6")
 
 int_value2_options = {
+    0x0:  "Please Select",
     0x10: "Adaptive Filtering (On / Off Toggle)",
     0x11: "Accel / Gyro Filtering (On / Off Toggle + Filter Parameters)",
     0x12: "AHRS Control (On / Off Toggle)",
@@ -101,44 +195,13 @@ int_value2_options = {
     0x67: "Write Defaults To Memory (On / Off Toggle)"
 }
 
-label_int_value2 = tk.Label(frame, text="Control Parameter (byte 2):", width=30)
-label_int_value2.grid(row=4, column=0)
+int_value2_var = tk.StringVar()
+int_value2_var.trace("w", update_gui_options)  # Add this line here
 
-entry_int_value2 = ttk.Combobox(frame, values=list(int_value2_options.values()), state='readonly', width=60)
+label_int_value2 = tk.Label(frame, text="Control Parameter Selection:")
+label_int_value2.grid(row=4, column=0)
+entry_int_value2 = ttk.Combobox(frame, textvariable=int_value2_var, values=list(int_value2_options.values()), state='readonly')
 entry_int_value2.grid(row=4, column=1)
 entry_int_value2.set(list(int_value2_options.values())[0])  # Set the default value
-
-int_value_3 = tk.Label(frame, text="User Input Parameter (byte 3 (hex)):", width=30)
-int_value_3.grid(row=5, column=0)
-int_value_3 = tk.Entry(frame)
-int_value_3.grid(row=5, column=1)
-int_value_3.insert(0, "0")
-
-int_value_4 = tk.Label(frame, text="User Input Parameter (byte 4 (hex)):", width=30)
-int_value_4.grid(row=6, column=0)
-int_value_4 = tk.Entry(frame)
-int_value_4.grid(row=6, column=1)
-int_value_4.insert(0, "0")
-
-int_value_5 = tk.Label(frame, text="User Input Parameter (byte 5 (hex)):", width=30)
-int_value_5.grid(row=7, column=0)
-int_value_5 = tk.Entry(frame)
-int_value_5.grid(row=7, column=1)
-int_value_5.insert(0, "0")
-
-int_value_6 = tk.Label(frame, text="User Input Parameter (byte 6 (hex)):", width=30)
-int_value_6.grid(row=8, column=0)
-int_value_6 = tk.Entry(frame)
-int_value_6.grid(row=8, column=1)
-int_value_6.insert(0, "0")
-
-int_value_7 = tk.Label(frame, text="User Input Parameter (byte 7 (hex)):", width=30)
-int_value_7.grid(row=9, column=0)
-int_value_7 = tk.Entry(frame)
-int_value_7.grid(row=9, column=1)
-int_value_7.insert(0, "0")
-
-button_send = tk.Button(frame, text="Send", command=send_can_message)
-button_send.grid(row=20, columnspan=8, pady=10)
 
 root.mainloop()
